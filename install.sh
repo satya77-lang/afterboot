@@ -1,0 +1,176 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+printf "Hello, %s\n" "$USER"
+
+# shellcheck disable=SC1091
+source /etc/os-release
+
+if [[ "$ID" == "debian" || "$ID" == "ubuntu" || "${ID_LIKE:-}" == *"debian"* || "${ID_LIKE:-}" == *"ubuntu"* ]]; then
+  printf "Supported: %s %s\n" "$NAME" "$VERSION"
+else
+  printf "This script is made for ubuntu and debian based distro\n"
+  exit 1
+fi
+
+if [[ "$(whoami)" = "root" ]]; then
+  SUDO=""
+else
+  SUDO="sudo"
+  sudo -v
+  while true; do
+    sudo -n true
+    sleep 300
+  done & # & = run this loop in the BACKGROUND
+  trap 'kill $! 2>/dev/null' EXIT
+fi
+
+# Add Charm repo(required for gum)
+
+function customGum {
+  $SUDO mkdir -p /etc/apt/keyrings
+  curl -fsSL https://repo.charm.sh/apt/gpg.key | $SUDO gpg --dearmor -o /etc/apt/keyrings/charm.gpg
+  echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | $SUDO tee /etc/apt/sources.list.d/charm.list
+  $SUDO apt update && $SUDO apt install -y gum
+}
+
+# Check if the command exists
+dependencies=("gum")
+
+for dep in "${dependencies[@]}"; do
+  if command -v "$dep" &>/dev/null; then
+    # Already installed skip
+    printf "%s is already installed.\n" "$dep"
+  elif apt-cache show "$dep" &>/dev/null; then
+    # Not Installed, but availabe in apt
+    printf "Installing %s via apt...\n" "$dep"
+    $SUDO apt install -y "$dep"
+  else
+    # Not Installed , not in apt - needs custom install
+    printf "Installing %s via custom method...\n" "$dep"
+    customGum
+  fi
+done
+
+#Install the Required dependencies
+
+function updateSystem {
+  gum spin --spinner moon --title 'Updating the System...' -- $SUDO apt -y update
+  gum spin --spinner moon --title 'Upgrading packages...' -- $SUDO apt -y upgrade
+}
+
+updateSystem # calling the function
+
+function Browsers {
+  local selected
+
+  selected=$(gum choose --no-limit --header "Select the Browsers for installation" 'Chrome' 'Brave' 'Chromium' 'Zen Browser')
+  printf "You selected:\n%s\n" "$selected"
+  # Loop through each selected browser, line by line
+  while IFS= read -r browser; do
+    case "$browser" in
+      "Chrome")
+        install_chrome
+        ;;
+      "Brave")
+        install_brave
+        ;;
+      "Chromium")
+        if command -v chromium-browser &>/dev/null; then
+          printf "Chromium is already installed.\n"
+        else
+          gum spin --spinner points --title 'Installing Chromium' -- \
+            $SUDO apt install -y chromium-browser
+        fi
+        ;;
+      "Zen Browser")
+        install_zen
+        ;;
+    esac
+  done <<<"$selected"
+
+}
+
+install_chrome() {
+  if command -v google-chrome &>/dev/null; then
+    printf "Chrome is already installed.\n"
+    return
+  fi
+
+  local deb_file="/tmp/google-chrome.deb"
+
+  gum spin --spinner points --title 'Downloading Chrome' -- \
+    wget -qO "$deb_file" "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
+
+  gum spin --spinner meter --title 'Installing Chrome' -- \
+    $SUDO apt install -y "$deb_file"
+
+  # Clean up
+  rm -f "$deb_file"
+
+  printf "Chrome installed successfully.\n"
+}
+
+install_brave() {
+  if command -v brave-browser &>/dev/null; then
+    printf "Brave is already installed.\n"
+    return
+  fi
+
+  # Download the Brave keyring
+  gum spin --spinner points --title 'Adding Brave repository' -- \
+    $SUDO curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
+
+  # Add the Brave sources list
+  $SUDO curl -fsSLo /etc/apt/sources.list.d/brave-browser-release.sources https://brave-browser-apt-release.s3.brave.com/brave-browser.sources
+
+  # Update apt to recognize the new repo
+  gum spin --spinner points --title 'Downloading Brave' -- $SUDO apt update
+
+  # Install Brave
+  gum spin --spinner meter --title 'Installing Brave' -- $SUDO apt install -y brave-browser
+
+  printf "Brave installed successfully.\n"
+}
+
+install_zen() {
+  if command -v zen-browser &>/dev/null || (command -v flatpak &>/dev/null && flatpak list 2>/dev/null | grep -q "io.github.zen_browser.zen"); then
+    printf "Zen Browser is already installed.\n"
+    return
+  fi
+
+  # Let the user pick the install method
+  local method
+  method=$(
+    gum choose --header "How would you like to install Zen Browser?" \
+      "Flatpak (Recommended)" \
+      "AppImage (no auto updates)" \
+      "Official Script (Tarball installation)"
+  )
+
+  case "$method" in
+    "Flatpak"*)
+      # Ensure flatpak is available
+      if ! command -v flatpak &>/dev/null; then
+        gum spin --spinner meter --title 'Installing Flatpak' -- $SUDO apt install -y flatpak
+        flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+      fi
+      gum spin --spinner meter --title 'Installing Zen Browser via Flatpak' -- \
+        flatpak install -y flathub app.zen_browser.zen
+      ;;
+    "AppImage"*)
+      gum spin --spinner meter --title 'Installing Zen Browser AppImage' -- \
+        bash <(curl -s https://updates.zen-browser.app/appimage.sh)
+      ;;
+    "Official Script"*)
+      gum spin --spinner meter --title 'Installing Zen Browser' -- \
+        bash <(curl -fsSL https://github.com/zen-browser/updates-server/raw/refs/heads/main/install.sh)
+      ;;
+  esac
+
+  printf "Zen Browser installed successfully.\n"
+
+}
+
+Browsers
