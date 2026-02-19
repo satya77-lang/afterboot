@@ -5,9 +5,11 @@ set -euo pipefail
 printf "Hello, %s\n" "$USER"
 
 # shellcheck disable=SC1091
+# shellcheck source=/etc/os-release
 source /etc/os-release
 
 if [[ "$ID" == "debian" || "$ID" == "ubuntu" || "${ID_LIKE:-}" == *"debian"* || "${ID_LIKE:-}" == *"ubuntu"* ]]; then
+  # shellcheck disable=SC2153
   printf "Supported: %s %s\n" "$NAME" "$VERSION"
 else
   printf "This script is made for ubuntu and debian based distro\n"
@@ -56,41 +58,13 @@ done
 #Install the Required dependencies
 
 function updateSystem {
-  gum spin --spinner moon --title 'Updating the System...' -- $SUDO apt -y update
-  gum spin --spinner moon --title 'Upgrading packages...' -- $SUDO apt -y upgrade
+  gum style --foreground 212 --bold "⬆ Updating the system..."
+  $SUDO apt -y -o Dpkg::Progress-Fancy=1 update
+  $SUDO apt -y -o Dpkg::Progress-Fancy=1 upgrade
+
 }
 
 updateSystem # calling the function
-
-function Browsers {
-  local selected
-
-  selected=$(gum choose --no-limit --header "Select the Browsers for installation" 'Chrome' 'Brave' 'Chromium' 'Zen Browser')
-  printf "You selected:\n%s\n" "$selected"
-  # Loop through each selected browser, line by line
-  while IFS= read -r browser; do
-    case "$browser" in
-      "Chrome")
-        install_chrome
-        ;;
-      "Brave")
-        install_brave
-        ;;
-      "Chromium")
-        if command -v chromium-browser &>/dev/null; then
-          printf "Chromium is already installed.\n"
-        else
-          gum spin --spinner points --title 'Installing Chromium' -- \
-            $SUDO apt install -y chromium-browser
-        fi
-        ;;
-      "Zen Browser")
-        install_zen
-        ;;
-    esac
-  done <<<"$selected"
-
-}
 
 install_chrome() {
   if command -v google-chrome &>/dev/null; then
@@ -173,4 +147,97 @@ install_zen() {
 
 }
 
-Browsers
+function Browsers {
+  local selected
+
+  selected=$(gum choose --no-limit --header "Select the Browsers for installation" 'Chrome' 'Brave' 'Chromium' 'Zen Browser')
+  gum style --border double --border-foreground 212 --padding "2 4" "You selected:" "$selected"
+  # Loop through each selected browser, line by line
+  while IFS= read -r browser; do
+    case "$browser" in
+      "Chrome")
+        install_chrome
+        ;;
+      "Brave")
+        install_brave
+        ;;
+      "Chromium")
+        if command -v chromium &>/dev/null; then
+          printf "Chromium is already installed.\n"
+        else
+          gum spin --spinner points --title 'Installing Chromium' -- \
+            $SUDO apt install -y chromium
+        fi
+        ;;
+      "Zen Browser")
+        install_zen
+        ;;
+    esac
+  done <<<"$selected"
+
+}
+
+apt_install() {
+  local name="$1"        # display name
+  local pkg="$2"         # package name for apt
+  local cmd="${3:-$pkg}" #if no 2nd argument , use the 1st
+
+  if command -v "$cmd" &>/dev/null; then
+    gum style --foreground 10 "$name" "is already installed"
+  else
+    gum spin --spinner points --title "Installing $name..." -- $SUDO apt install -y "$pkg"
+    gum style --foreground 10 "$name" "installed successfully"
+  fi
+}
+
+Browsers # Calls the Browsers installation function
+
+install_blender() {
+  if command -v blender &>/dev/null; then
+    gum style --foreground 10 "Blender is already installed"
+    return
+  fi
+
+  # Give user the choices
+  local method
+  method=$(
+    gum choose --header "How would you like to install Blender?" \
+      "System Package Manager(Recommended)" \
+      "Snap (For Ubuntu Distro)" \
+      "Flatpak"
+  )
+  case $method in
+    "System Package"*)
+      gum spin --spinner meter --title "Installing Blender via apt" -- $SUDO apt install -y blender
+      ;;
+    "Snap"*)
+      gum spin --spinner meter --title "Installing Blender via snap" -- $SUDO snap install blender --classic
+      ;;
+    "Flatpak"*)
+      gum spin --spinner meter --title "Installing Blender via Flatpak" -- flatpak install --user -y flathub org.blender.Blender
+      ;;
+  esac
+  printf "Blender installed successfully..\n"
+}
+
+function MultimediaTools {
+  local selected
+  selected=$(gum choose --header 'Select the MultimediaTools for installation' --no-limit 'VLC' 'Gnome Video Player' 'MPV Player' 'Blender' 'GIMP' 'OBS' 'Audacity')
+
+  while IFS= read -r media; do
+    case "$media" in
+      "VLC")
+        apt_install VLC vlc
+        ;;
+      "Gnome Video Player")
+        apt_install "Gnome Video Player" "showtime"
+        ;;
+      "mpv Player")
+        apt_install "MPV Player" "mpv"
+        ;;
+      "Blender")
+        install_blender
+        ;;
+    esac
+  done <<<"$selected"
+}
