@@ -230,12 +230,7 @@ install_zen() {
   case "$method" in
     "Flatpak"*)
       # Ensure flatpak is available
-      if ! command -v flatpak &>/dev/null; then
-        gum spin --spinner meter --title 'Installing Flatpak' -- $SUDO apt install -y flatpak
-        flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-      fi
-      gum spin --spinner meter --title 'Installing Zen Browser via Flatpak' -- \
-        flatpak install -y flathub app.zen_browser.zen
+      flatpak_install "Zen Browser" "app.zen_browser.zen"
       ;;
     "AppImage"*)
       gum spin --spinner meter --title 'Installing Zen Browser AppImage' -- \
