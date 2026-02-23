@@ -59,8 +59,8 @@ done
 
 function updateSystem {
   gum style --foreground 212 --bold "⬆ Updating the system..."
-  $SUDO apt -y -o Dpkg::Progress-Fancy=1 update
-  $SUDO apt -y -o Dpkg::Progress-Fancy=1 upgrade
+  $SUDO apt update -y
+  $SUDO apt upgrade -y
 
 }
 
