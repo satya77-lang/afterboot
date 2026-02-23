@@ -88,10 +88,14 @@ function flatpak_install {
   local package="$2"
 
   gum style --foreground 212 "$name not available via apt, installing via Flatpak..."
+
+  # Install flatpak if not present
   if ! command -v flatpak &>/dev/null; then
     gum spin --spinner meter --title 'Installing Flatpak' -- $SUDO apt install -y flatpak
-    flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   fi
+
+  # Always ensure flathub remote is added (Mint has flatpak but may not have flathub)
+  flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
   gum spin --spinner meter --title "Installing $name via Flatpak" -- \
     flatpak install --user -y flathub "$package"
