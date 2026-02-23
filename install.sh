@@ -127,7 +127,7 @@ function zsh_setup {
 
 }
 
-if gum confirm --header "Do you want to Switch to ZSH Shell"; then
+if gum confirm "Do you want to Switch to ZSH Shell"; then
   zsh_setup
 else
   gum style --foreground 212 --bold "⚠ Skipping ZSH setup."
