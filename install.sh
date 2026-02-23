@@ -55,6 +55,8 @@ for dep in "${dependencies[@]}"; do
   fi
 done
 
+
+
 #Install the Required dependencies
 
 function updateSystem {
@@ -79,6 +81,8 @@ apt_install() {
   fi
 }
 
+#Installing the dependencies
+gum spin --spinner dot --title "Installing Dependencies" -- $SUDO apt install -y git
 function flatpak_install {
   local name="$1"
   local package="$2"
