@@ -79,6 +79,22 @@ apt_install() {
   fi
 }
 
+function flatpak_install {
+  local name="$1"
+  local package="$2"
+
+  gum style --foreground 212 "$name not available via apt, installing via Flatpak..."
+  if ! command -v flatpak &>/dev/null; then
+    gum spin --spinner meter --title 'Installing Flatpak' -- $SUDO apt install -y flatpak
+    flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+  fi
+
+  gum spin --spinner meter --title "Installing $name via Flatpak" -- \
+    flatpak install --user -y flathub "$package"
+  gum style --foreground 10 "$name installed via Flatpak"
+}
+
+
 # ZSH Setup
 
 # ZSH setup
@@ -318,17 +334,3 @@ function MultimediaTools {
   done <<<"$selected"
 }
 
-function flatpak_install {
-  local name="$1"
-  local package="$2"
-
-  gum style --foreground 212 "$name not available via apt, installing via Flatpak..."
-  if ! command -v flatpak &>/dev/null; then
-    gum spin --spinner meter --title 'Installing Flatpak' -- $SUDO apt install -y flatpak
-    flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-  fi
-
-  gum spin --spinner meter --title "Installing $name via Flatpak" -- \
-    flatpak install --user -y flathub "$package"
-  gum style --foreground 10 "$name installed via Flatpak"
-}
