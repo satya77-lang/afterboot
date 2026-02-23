@@ -334,3 +334,4 @@ function MultimediaTools {
   done <<<"$selected"
 }
 
+MultimediaTools
