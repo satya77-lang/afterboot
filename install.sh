@@ -88,6 +88,7 @@ function zsh_setup {
   gum spin --spinner meter --title "Installing Starship" -- bash -c 'curl -sS https://starship.rs/install.sh | sh -s -- -y'
 
   # Add starship init to .zshrc
+  # shellcheck disable=SC2016
   echo 'eval "$(starship init zsh)"' >>"$HOME/.zshrc"
   gum style --foreground 118 --bold "✅ Starship configured in .zshrc"
 
