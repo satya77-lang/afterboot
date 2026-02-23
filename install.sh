@@ -146,7 +146,6 @@ else
   gum style --foreground 212 --bold "⚠ Skipping ZSH setup."
 fi
 
-
 install_chrome() {
   if command -v google-chrome &>/dev/null; then
     printf "Chrome is already installed.\n"
@@ -258,8 +257,6 @@ function Browsers {
 
 }
 
-
-
 Browsers # Calls the Browsers installation function
 
 install_blender() {
@@ -300,7 +297,16 @@ function MultimediaTools {
         apt_install VLC vlc
         ;;
       "Gnome Video Player")
-        apt_install "Gnome Video Player" "showtime"
+        if apt-cache show showtime &>/dev/null; then
+          apt_install "Gnome Video Player" "showtime"
+        else
+          gum style --foreground 212 "showtime not available via apt, installing via Flatpak..."
+          if ! command -v flatpak &>/dev/null; then
+            gum spin --spinner meter --title 'Installing Flatpak' -- $SUDO apt install -y flatpak
+            flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          fi
+          flatpak_install "Gnome Video player" "org.gnome.Showtime"
+        fi
         ;;
       "mpv Player")
         apt_install "MPV Player" "mpv"
@@ -310,4 +316,19 @@ function MultimediaTools {
         ;;
     esac
   done <<<"$selected"
+}
+
+function flatpak_install {
+  local name="$1"
+  local package="$2"
+
+  gum style --foreground 212 "$name not available via apt, installing via Flatpak..."
+  if ! command -v flatpak &>/dev/null; then
+    gum spin --spinner meter --title 'Installing Flatpak' -- $SUDO apt install -y flatpak
+    flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+  fi
+
+  gum spin --spinner meter --title "Installing $name via Flatpak" -- \
+    flatpak install --user -y flathub "$package"
+  gum style --foreground 10 "$name installed via Flatpak"
 }
