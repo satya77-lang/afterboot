@@ -64,7 +64,20 @@ function updateSystem {
 
 }
 
-updateSystem # calling the function
+updateSystem # calling the function'
+
+apt_install() {
+  local name="$1"        # display name
+  local pkg="$2"         # package name for apt
+  local cmd="${3:-$pkg}" #if no 2nd argument , use the 1st
+
+  if command -v "$cmd" &>/dev/null; then
+    gum style --foreground 10 "$name" "is already installed"
+  else
+    gum spin --spinner points --title "Installing $name..." -- $SUDO apt install -y "$pkg"
+    gum style --foreground 10 "$name" "installed successfully"
+  fi
+}
 
 # ZSH Setup
 
@@ -245,18 +258,7 @@ function Browsers {
 
 }
 
-apt_install() {
-  local name="$1"        # display name
-  local pkg="$2"         # package name for apt
-  local cmd="${3:-$pkg}" #if no 2nd argument , use the 1st
 
-  if command -v "$cmd" &>/dev/null; then
-    gum style --foreground 10 "$name" "is already installed"
-  else
-    gum spin --spinner points --title "Installing $name..." -- $SUDO apt install -y "$pkg"
-    gum style --foreground 10 "$name" "installed successfully"
-  fi
-}
 
 Browsers # Calls the Browsers installation function
 
