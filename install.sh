@@ -320,12 +320,7 @@ function MultimediaTools {
         if apt-cache show showtime &>/dev/null; then
           apt_install "Gnome Video Player" "showtime"
         else
-          gum style --foreground 212 "showtime not available via apt, installing via Flatpak..."
-          if ! command -v flatpak &>/dev/null; then
-            gum spin --spinner meter --title 'Installing Flatpak' -- $SUDO apt install -y flatpak
-            flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-          fi
-          flatpak_install "Gnome Video player" "org.gnome.Showtime"
+          flatpak_install "Gnome Video Player" "org.gnome.Showtime"
         fi
         ;;
       "mpv Player")
