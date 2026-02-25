@@ -258,10 +258,10 @@ function Browsers {
   selected=$(gum choose --no-limit --header "Select the Browsers for installation" 'Chrome' 'Brave' 'Chromium' 'Zen Browser')
   gum style --border double --border-foreground 212 --padding "2 4" "You selected:" "$selected"
   # Loop through each selected browser, line by line
-  while IFS= read -r browser; do
+  while IFS= read -r browser <&3; do # read uses door 3 (custom pipe)
     case "$browser" in
       "Chrome")
-        install_chrome
+        install_chrome # # gum choose uses door 0 (stdin) — no conflict!
         ;;
       "Brave")
         install_brave
@@ -278,7 +278,7 @@ function Browsers {
         install_zen
         ;;
     esac
-  done <<<"$selected"
+  done 3<<<"$selected" # $selected is fed through door 3
 
 }
 
@@ -474,7 +474,7 @@ function MultimediaTools {
   local selected
   selected=$(gum choose --header 'Select the MultimediaTools for installation' --no-limit 'VLC' 'Gnome Video Player' 'MPV Player' 'Blender' 'GIMP' 'OBS' 'Audacity')
 
-  while IFS= read -r media; do
+  while IFS= read -r media <&3; do
     case "$media" in
       "VLC")
         apt_install VLC vlc
@@ -504,7 +504,7 @@ function MultimediaTools {
         install_audacity
         ;;
     esac
-  done <<<"$selected"
+  done 3<<<"$selected"
 }
 
 MultimediaTools
