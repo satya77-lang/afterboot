@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
+trap 'printf "\n❌ Script failed at line %d (exit code %d)\n" "$LINENO" "$?" >&2' ERR
 
 printf "Hello, %s\n" "$USER"
 
@@ -233,18 +234,18 @@ install_zen() {
   )
 
   case "$method" in
-  "Flatpak"*)
-    # Ensure flatpak is available
-    flatpak_install "Zen Browser" "app.zen_browser.zen"
-    ;;
-  "AppImage"*)
-    gum spin --spinner meter --title 'Installing Zen Browser AppImage' -- \
-      bash <(curl -s https://updates.zen-browser.app/appimage.sh)
-    ;;
-  "Official Script"*)
-    gum spin --spinner meter --title 'Installing Zen Browser' -- \
-      bash <(curl -fsSL https://github.com/zen-browser/updates-server/raw/refs/heads/main/install.sh)
-    ;;
+    "Flatpak"*)
+      # Ensure flatpak is available
+      flatpak_install "Zen Browser" "app.zen_browser.zen"
+      ;;
+    "AppImage"*)
+      gum spin --spinner meter --title 'Installing Zen Browser AppImage' -- \
+        bash <(curl -s https://updates.zen-browser.app/appimage.sh)
+      ;;
+    "Official Script"*)
+      gum spin --spinner meter --title 'Installing Zen Browser' -- \
+        bash <(curl -fsSL https://github.com/zen-browser/updates-server/raw/refs/heads/main/install.sh)
+      ;;
   esac
 
   printf "Zen Browser installed successfully.\n"
@@ -259,23 +260,23 @@ function Browsers {
   # Loop through each selected browser, line by line
   while IFS= read -r browser; do
     case "$browser" in
-    "Chrome")
-      install_chrome
-      ;;
-    "Brave")
-      install_brave
-      ;;
-    "Chromium")
-      if command -v chromium &>/dev/null; then
-        printf "Chromium is already installed.\n"
-      else
-        gum spin --spinner points --title 'Installing Chromium' -- \
-          $SUDO apt install -y chromium
-      fi
-      ;;
-    "Zen Browser")
-      install_zen
-      ;;
+      "Chrome")
+        install_chrome
+        ;;
+      "Brave")
+        install_brave
+        ;;
+      "Chromium")
+        if command -v chromium &>/dev/null; then
+          printf "Chromium is already installed.\n"
+        else
+          gum spin --spinner points --title 'Installing Chromium' -- \
+            $SUDO apt install -y chromium
+        fi
+        ;;
+      "Zen Browser")
+        install_zen
+        ;;
     esac
   done <<<"$selected"
 
@@ -298,15 +299,15 @@ install_blender() {
       "Flatpak"
   )
   case $method in
-  "System Package"*)
-    gum spin --spinner meter --title "Installing Blender via apt" -- $SUDO apt install -y blender
-    ;;
-  "Snap"*)
-    gum spin --spinner meter --title "Installing Blender via snap" -- $SUDO snap install blender --classic
-    ;;
-  "Flatpak"*)
-    gum spin --spinner meter --title "Installing Blender via Flatpak" -- $SUDO flatpak install -y flathub org.blender.Blender
-    ;;
+    "System Package"*)
+      gum spin --spinner meter --title "Installing Blender via apt" -- $SUDO apt install -y blender
+      ;;
+    "Snap"*)
+      gum spin --spinner meter --title "Installing Blender via snap" -- $SUDO snap install blender --classic
+      ;;
+    "Flatpak"*)
+      gum spin --spinner meter --title "Installing Blender via Flatpak" -- $SUDO flatpak install -y flathub org.blender.Blender
+      ;;
   esac
   printf "Blender installed successfully..\n"
 }
@@ -325,13 +326,13 @@ install_gimp() {
       "Flatpak"
   )
   case $method in
-  "System Package"*)
-    apt_install "GIMP" "gimp"
+    "System Package"*)
+      apt_install "GIMP" "gimp"
 
-    ;;
-  "Flatpak")
-    flatpak_install "GIMP" "org.gimp.GIMP"
-    ;;
+      ;;
+    "Flatpak")
+      flatpak_install "GIMP" "org.gimp.GIMP"
+      ;;
   esac
   printf "GIMP installed successfully...\n"
 }
@@ -367,24 +368,31 @@ install_obs() {
   )
 
   case "$method" in
-  "PPA"*)
-    cmd_check "OBS Studio" "obs-studio"
-    if command -v add-apt-repository &>/dev/null; then
-      gum spin --spinner dot --title 'Adding the OBS to System Package Manager' -- $SUDO add-apt-repository -y ppa:obsproject/obs-studio
-      gum spin --spinner moon --title 'Updating the Packages' -- $SUDO apt update
-      gum spin --spinner meter --title 'Installing OBS Studio' -- $SUDO apt install -y obs-studio
-    else
-      gum style --foreground 212 --bold "⚠️ PPA is not supported on this distro($NAME). Installing via apt instead..."
+    "PPA"*)
+      cmd_check "OBS Studio" "obs-studio"
+      if command -v add-apt-repository &>/dev/null; then
+        gum spin --spinner dot --title 'Adding the OBS to System Package Manager' -- $SUDO add-apt-repository -y ppa:obsproject/obs-studio
+        if $SUDO apt update 2>&1 | grep -q "does not have a Release file"; then
+          gum style --foreground 212 --bold "⚠️ PPA doesn't support $VERSION_CODENAME yet. Installing via apt instead..."
+          # Remove the PPA REPO
+          $SUDO add-apt-repository -y --remove ppa:obsproject/obs-studio
+          gum spin --spinner moon --title 'Updating the Packages' -- $SUDO apt update
+          gum spin --spinner meter --title 'Installing OBS Studio' -- $SUDO apt install -y obs-studio
+        else
+          gum spin --spinner meter --title 'Installing OBS Studio via PPA' -- $SUDO apt install -y obs-studio
+        fi
+      else
+        gum style --foreground 212 --bold "⚠️ PPA is not supported on this distro($NAME). Installing via apt instead..."
+        gum spin --spinner meter --title 'Installing OBS Studio via apt' -- $SUDO apt install -y obs-studio
+      fi
+      ;;
+    "System Package"*)
       gum spin --spinner meter --title 'Installing OBS Studio via apt' -- $SUDO apt install -y obs-studio
-    fi
-    ;;
-  "System Package"*)
-    gum spin --spinner meter --title 'Installing OBS Studio via apt' -- $SUDO apt install -y obs-studio
-    ;;
-  "Flatpak"*)
-    cmd_flatpak "OBS Studio" "com.obsproject.Studio"
-    flatpak_install "OBS Studio" "com.obsproject.Studio"
-    ;;
+      ;;
+    "Flatpak"*)
+      cmd_flatpak "OBS Studio" "com.obsproject.Studio"
+      flatpak_install "OBS Studio" "com.obsproject.Studio"
+      ;;
   esac
 
   gum style --foreground 10 "OBS Studio installed successfully"
@@ -402,61 +410,61 @@ install_audacity() {
   )
 
   case "$method" in
-  "System Package"*)
-    apt_install "Audacity" "audacity"
-    ;;
-  "Flatpak"*)
-    flatpak_install "Audacity" "org.audacityteam.Audacity"
-    ;;
-  "Snap")
-    gum spin --spinner meter --title 'Installing Audacity via snap' -- $SUDO snap install audacity
-    ;;
-  "AppImage"*)
-    local appImageURL=https://github.com/audacity/audacity/releases/download/Audacity-3.7.7/audacity-linux-3.7.7-x64-22.04.AppImage
+    "System Package"*)
+      apt_install "Audacity" "audacity"
+      ;;
+    "Flatpak"*)
+      flatpak_install "Audacity" "org.audacityteam.Audacity"
+      ;;
+    "Snap")
+      gum spin --spinner meter --title 'Installing Audacity via snap' -- $SUDO snap install audacity
+      ;;
+    "AppImage"*)
+      local appImageURL=https://github.com/audacity/audacity/releases/download/Audacity-3.7.7/audacity-linux-3.7.7-x64-22.04.AppImage
 
-    if [[ -z "$appImageURL" ]]; then
-      gum style --foreground 196 --bold "❌ Could not find the AppImage URL . Try another method"
-      return
-    fi
-
-    local appImage_dir="$HOME/Applications"
-    mkdir -p "$appImage_dir"
-
-    gum spin --spinner points --title 'Downloading Audacity AppImage' -- wget -qO "$appImage_dir/Audacity.AppImage" "$appImageURL"
-
-    chmod +x "$appImage_dir/Audacity.AppImage"
-
-    if gum confirm 'Create a desktop entry for easy access?'; then
-      if gum confirm 'Install for all users? (Yes = system-wide, No = only you)'; then
-        # System-wide desktop entry
-        $SUDO tee /usr/share/applications/audacity.desktop >/dev/null <<EOF
-[Desktop Entry]
-Name=Audacity
-Exec=$appImage_dir/Audacity.AppImage
-Icon=audacity
-Type=Application
-Categories=AudioVideo;Audio;
-Comment=Audio editor and recorder
-EOF
-        gum style --foreground 118 --bold "✅ Desktop entry created for all users"
-      else
-        # User-only desktop entry
-        mkdir -p "$HOME/.local/share/applications"
-        tee "$HOME/.local/share/applications/audacity.desktop" >/dev/null <<EOF
-[Desktop Entry]
-Name=Audacity
-Exec=$appImage_dir/Audacity.AppImage
-Icon=audacity
-Type=Application
-Categories=AudioVideo;Audio;
-Comment=Audio editor and recorder
-EOF
-        gum style --foreground 118 --bold "✅ Desktop entry created for your user"
+      if [[ -z "$appImageURL" ]]; then
+        gum style --foreground 196 --bold "❌ Could not find the AppImage URL . Try another method"
+        return
       fi
-    fi
 
-    gum style --foreground 118 --bold "✅ AppImage saved to $appImage_dir/Audacity.AppImage"
-    ;;
+      local appImage_dir="$HOME/Applications"
+      mkdir -p "$appImage_dir"
+
+      gum spin --spinner points --title 'Downloading Audacity AppImage' -- wget -qO "$appImage_dir/Audacity.AppImage" "$appImageURL"
+
+      chmod +x "$appImage_dir/Audacity.AppImage"
+
+      if gum confirm 'Create a desktop entry for easy access?'; then
+        if gum confirm 'Install for all users? (Yes = system-wide, No = only you)'; then
+          # System-wide desktop entry
+          $SUDO tee /usr/share/applications/audacity.desktop >/dev/null <<EOF
+[Desktop Entry]
+Name=Audacity
+Exec=$appImage_dir/Audacity.AppImage
+Icon=audacity
+Type=Application
+Categories=AudioVideo;Audio;
+Comment=Audio editor and recorder
+EOF
+          gum style --foreground 118 --bold "✅ Desktop entry created for all users"
+        else
+          # User-only desktop entry
+          mkdir -p "$HOME/.local/share/applications"
+          tee "$HOME/.local/share/applications/audacity.desktop" >/dev/null <<EOF
+[Desktop Entry]
+Name=Audacity
+Exec=$appImage_dir/Audacity.AppImage
+Icon=audacity
+Type=Application
+Categories=AudioVideo;Audio;
+Comment=Audio editor and recorder
+EOF
+          gum style --foreground 118 --bold "✅ Desktop entry created for your user"
+        fi
+      fi
+
+      gum style --foreground 118 --bold "✅ AppImage saved to $appImage_dir/Audacity.AppImage"
+      ;;
   esac
 
   gum style --foreground 10 "Audacity installed successfully"
@@ -468,33 +476,33 @@ function MultimediaTools {
 
   while IFS= read -r media; do
     case "$media" in
-    "VLC")
-      apt_install VLC vlc
-      ;;
-    "Gnome Video Player")
-      if apt-cache show showtime &>/dev/null; then
-        apt_install "Gnome Video Player" "showtime"
-      elif apt-cache show totem &>/dev/null; then
-        apt_install "Gnome Video Player" "totem"
-      else
-        flatpak_install "Gnome Video Player" "org.gnome.Showtime"
-      fi
-      ;;
-    "mpv Player")
-      apt_install "MPV Player" "mpv"
-      ;;
-    "Blender")
-      install_blender
-      ;;
-    "GIMP")
-      install_gimp
-      ;;
-    "OBS")
-      install_obs
-      ;;
-    "Audacity")
-      install_audacity
-      ;;
+      "VLC")
+        apt_install VLC vlc
+        ;;
+      "Gnome Video Player")
+        if apt-cache show showtime &>/dev/null; then
+          apt_install "Gnome Video Player" "showtime"
+        elif apt-cache show totem &>/dev/null; then
+          apt_install "Gnome Video Player" "totem"
+        else
+          flatpak_install "Gnome Video Player" "org.gnome.Showtime"
+        fi
+        ;;
+      "mpv Player")
+        apt_install "MPV Player" "mpv"
+        ;;
+      "Blender")
+        install_blender
+        ;;
+      "GIMP")
+        install_gimp
+        ;;
+      "OBS")
+        install_obs
+        ;;
+      "Audacity")
+        install_audacity
+        ;;
     esac
   done <<<"$selected"
 }
