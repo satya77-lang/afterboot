@@ -363,8 +363,8 @@ install_obs() {
     cmd_check "OBS Studio" "obs-studio"
     if command -v add-apt-repository &>/dev/null; then
       gum spin --spinner dot --title 'Adding the OBS to System Package Manager' -- $SUDO add-apt-repository -y ppa:obsproject/obs-studio
-      gum spin --spinner moon --title 'Updating the Packages'
-      gum spin --spinner meter --title 'Installing OBS Studio'
+      gum spin --spinner moon --title 'Updating the Packages' -- $SUDO apt update
+      gum spin --spinner meter --title 'Installing OBS Studio' -- $SUDO apt install obs-studio
     else
       gum style --foreground 212 --bold "⚠️ PPA is not supported on this distro($NAME). Installing via apt instead..."
       gum spin --spinner meter --title 'Installing OBS Studio via apt' -- $SUDO apt install -y obs-studio
