@@ -93,10 +93,10 @@ function flatpak_install {
   fi
 
   # Always ensure flathub remote is added (Mint has flatpak but may not have flathub)
-  flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+  $SUDO flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
   gum spin --spinner meter --title "Installing $name via Flatpak" -- \
-    flatpak install --user -y flathub "$package"
+    $SUDO flatpak install -y flathub "$package"
   gum style --foreground 10 "$name installed via Flatpak"
 }
 
@@ -297,7 +297,7 @@ install_blender() {
     gum spin --spinner meter --title "Installing Blender via snap" -- $SUDO snap install blender --classic
     ;;
   "Flatpak"*)
-    gum spin --spinner meter --title "Installing Blender via Flatpak" -- flatpak install --user -y flathub org.blender.Blender
+    gum spin --spinner meter --title "Installing Blender via Flatpak" -- $SUDO flatpak install -y flathub org.blender.Blender
     ;;
   esac
   printf "Blender installed successfully..\n"
@@ -313,8 +313,8 @@ install_gimp() {
   local method
   method=$(
     gum choose --header "How would you like to install GIMP" \
-      "System Package Manager(Recommended)"
-    "Flatpak"
+      "System Package Manager(Recommended)" \
+      "Flatpak"
   )
   case $method in
   "System Package"*)
