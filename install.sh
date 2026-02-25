@@ -81,19 +81,27 @@ apt_install() {
 
 #Installing the dependencies
 gum spin --spinner dot --title "Installing Dependencies" -- $SUDO apt install -y git
+
 function flatpak_install {
   local name="$1"
   local package="$2"
 
-  gum style --foreground 212 "$name not available via apt, installing via Flatpak..."
-
-  # Install flatpak if not present
-  if ! command -v flatpak &>/dev/null; then
-    gum spin --spinner meter --title 'Installing Flatpak' -- $SUDO apt install -y flatpak
+  # Skip if already installed via Flatpak
+  if command -v flatpak &>/dev/null && flatpak list 2>/dev/null | grep -q "$package"; then
+    gum style --foreground 10 "$name is already installed via Flatpak"
+    return
   fi
 
-  # Always ensure flathub remote is added (Mint has flatpak but may not have flathub)
-  $SUDO flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+  gum style --foreground 212 "$name not available via apt, installing via Flatpak..."
+
+  # Setup flatpak + flathub only once
+  if [[ "${FLATHUB_READY:-}" != "true" ]]; then
+    if ! command -v flatpak &>/dev/null; then
+      gum spin --spinner meter --title 'Installing Flatpak' -- $SUDO apt install -y flatpak
+    fi
+    $SUDO flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+    FLATHUB_READY=true
+  fi
 
   gum spin --spinner meter --title "Installing $name via Flatpak" -- \
     $SUDO flatpak install -y flathub "$package"
@@ -343,7 +351,7 @@ cmd_flatpak() {
   local name=$1
   local flatPackage=$2
   if command -v flatpak &>/dev/null && flatpak list 2>/dev/null | grep -q "$flatPackage"; then
-    gum style --foreground 1- "$name is already installed via flatpak"
+    gum style --foreground 10 "$name is already installed via flatpak"
     return
   fi
 
@@ -364,7 +372,7 @@ install_obs() {
     if command -v add-apt-repository &>/dev/null; then
       gum spin --spinner dot --title 'Adding the OBS to System Package Manager' -- $SUDO add-apt-repository -y ppa:obsproject/obs-studio
       gum spin --spinner moon --title 'Updating the Packages' -- $SUDO apt update
-      gum spin --spinner meter --title 'Installing OBS Studio' -- $SUDO apt install obs-studio
+      gum spin --spinner meter --title 'Installing OBS Studio' -- $SUDO apt install -y obs-studio
     else
       gum style --foreground 212 --bold "⚠️ PPA is not supported on this distro($NAME). Installing via apt instead..."
       gum spin --spinner meter --title 'Installing OBS Studio via apt' -- $SUDO apt install -y obs-studio
@@ -411,7 +419,7 @@ install_audacity() {
       return
     fi
 
-    local appImage_dir="$HOME/Appications"
+    local appImage_dir="$HOME/Applications"
     mkdir -p "$appImage_dir"
 
     gum spin --spinner points --title 'Downloading Audacity AppImage' -- wget -qO "$appImage_dir/Audacity.AppImage" "$appImageURL"
@@ -466,6 +474,8 @@ function MultimediaTools {
     "Gnome Video Player")
       if apt-cache show showtime &>/dev/null; then
         apt_install "Gnome Video Player" "showtime"
+      elif apt-cache show totem &>/dev/null; then
+        apt_install "Gnome Video Player" "totem"
       else
         flatpak_install "Gnome Video Player" "org.gnome.Showtime"
       fi
