@@ -509,7 +509,7 @@ function MultimediaTools {
 
 MultimediaTools
 
-if gum confirm --affirmative "Reboot Now ⚡" --negative "Later" --timeout 30s --prompt.foreground 212 --selected.foreground 118 "Restart to apply changes"; then
+if gum confirm --affirmative "Reboot Now ⚡" --negative "Later" --default=false --prompt.foreground 212 --selected.foreground 118 "Restart to apply changes"; then
   $SUDO reboot
 else
   exit 0
