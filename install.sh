@@ -100,7 +100,7 @@ function flatpak_install {
     if ! command -v flatpak &>/dev/null; then
       gum spin --spinner meter --title 'Installing Flatpak' -- $SUDO apt install -y flatpak
     fi
-    $SUDO flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+    $SUDO flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
     FLATHUB_READY=true
   fi
 
