@@ -97,6 +97,7 @@ function flatpak_install {
 
   # Setup flatpak + flathub only once
   if [[ "${FLATHUB_READY:-}" != "true" ]]; then
+  
     if ! command -v flatpak &>/dev/null; then
       gum spin --spinner meter --title 'Installing Flatpak' -- $SUDO apt install -y flatpak
     fi
