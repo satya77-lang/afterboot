@@ -253,14 +253,51 @@ install_zen() {
 
 }
 
+install_firefox() {
+  #Create a directory to store APT repository keys if it doesn't exist
+  $SUDO install -d -m 0755 /etc/apt/keyrings
+
+  # Import the Mozilla APT repository signing key
+  wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | sudo tee /etc/apt/keyrings/packages.mozilla.org.asc >/dev/null
+
+  # 35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3
+  gpg -n -q --import --import-options import-show /etc/apt/keyrings/packages.mozilla.org.asc | awk '/pub/{getline; gsub(/^ +| +$/,""); if($0 == "35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3") print "\nThe key fingerprint matches ("$0").\n"; else print "\nVerification failed: the fingerprint ("$0") does not match the expected one.\n"}'
+
+  # Next, add the Mozilla APT repository to your sources.list
+  cat <<EOF | sudo tee /etc/apt/sources.list.d/mozilla.sources
+Types: deb
+URIs: https://packages.mozilla.org/apt
+Suites: mozilla
+Components: main
+Signed-By: /etc/apt/keyrings/packages.mozilla.org.asc
+EOF
+
+  # Configure APT to prioritize packages from the Mozilla repository
+  echo '
+Package: *
+Pin: origin packages.mozilla.org
+Pin-Priority: 1000
+' | sudo tee /etc/apt/preferences.d/mozilla
+
+  # Update your package list
+  $SUDO apt update
+
+  # Install Firefox
+  $SUDO apt install firefox
+
+}
+
 function Browsers {
   local selected
 
-  selected=$(gum choose --no-limit --header "Select the Browsers for installation" 'Chrome' 'Brave' 'Chromium' 'Zen Browser')
+  selected=$(gum choose --no-limit --header "Select the Browsers for installation" 'Firefox' 'Chrome' 'Brave' 'Chromium' 'Zen Browser')
   gum style --border double --border-foreground 212 --padding "2 4" "You selected:" "$selected"
   # Loop through each selected browser, line by line
   while IFS= read -r browser <&3; do # read uses door 3 (custom pipe)
     case "$browser" in
+      "Firefox")
+        install_firefox
+        ;;
       "Chrome")
         install_chrome # # gum choose uses door 0 (stdin) — no conflict!
         ;;
