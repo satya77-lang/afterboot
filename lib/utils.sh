@@ -8,6 +8,7 @@ apt_install() {
   if command -v "$cmd" &>/dev/null; then
     gum style --foreground 10 "$name" "is already installed"
   else
+  # shellcheck disable=SC2086
     gum spin --spinner points --title "Installing $name... via apt" -- $SUDO apt install -y "$pkg"
     gum style --foreground 10 "$name" "installed successfully"
   fi
@@ -54,7 +55,7 @@ function deb_install {
 
   gum spin --spinner points --title "Downloading $name" -- \
     wget -qO "$deb_file" "$link"
-
+  # shellcheck disable=SC2086
   gum spin --spinner meter --title "Installing $name" -- \
     $SUDO apt install -y "$deb_file"
 

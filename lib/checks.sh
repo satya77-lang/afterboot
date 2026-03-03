@@ -4,6 +4,7 @@
 
 check_os() {
   source /etc/os-release
+  export NAME VERSION VERSION_CODENAME ID ID_LIKE  # make them available everywhere
 
   if [[ "$ID" == "debian" || "$ID" == "ubuntu" || "${ID_LIKE:-}" == *"debian"* || "${ID_LIKE:-}" == *"ubuntu"* ]]; then
     # shellcheck disable=SC2153
@@ -30,5 +31,6 @@ check_root() {
 
 install_dependencies() {
   #Installing the dependencies
+  # shellcheck disable=SC2086
   gum spin --spinner dot --title "Installing Dependencies" -- $SUDO apt install -y git
 }

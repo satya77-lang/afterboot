@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2086
+# shellcheck disable=SC2154
 
 install_blender() {
   if command -v blender &>/dev/null; then
@@ -87,17 +89,21 @@ install_obs() {
     "PPA"*)
       cmd_check "OBS Studio" "obs-studio" && return ## if available then stops the function
       if command -v add-apt-repository &>/dev/null; then
+        # shellcheck disable=SC2086
         gum spin --spinner dot --title 'Adding the OBS to System Package Manager' -- $SUDO add-apt-repository -y ppa:obsproject/obs-studio
         if $SUDO apt update 2>&1 | grep -q "does not have a Release file"; then
           gum style --foreground 212 --bold "⚠️ PPA doesn't support $VERSION_CODENAME yet. Installing via apt instead..."
           # Remove the PPA REPO
+
           $SUDO add-apt-repository -y --remove ppa:obsproject/obs-studio
+
           gum spin --spinner moon --title 'Updating the Packages' -- $SUDO apt update
           gum spin --spinner meter --title 'Installing OBS Studio' -- $SUDO apt install -y obs-studio
         else
           gum spin --spinner meter --title 'Installing OBS Studio via PPA' -- $SUDO apt install -y obs-studio
         fi
       else
+        # shellcheck disable=SC2154,SC2153
         gum style --foreground 212 --bold "⚠️ PPA is not supported on this distro($NAME). Installing via apt instead..."
         gum spin --spinner meter --title 'Installing OBS Studio via apt' -- $SUDO apt install -y obs-studio
       fi

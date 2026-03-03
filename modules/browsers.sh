@@ -10,7 +10,7 @@ install_chrome() {
 
   gum spin --spinner points --title 'Downloading Chrome' -- \
     wget -qO "$deb_file" "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
-
+  # shellcheck disable=SC2086
   gum spin --spinner meter --title 'Installing Chrome' -- \
     $SUDO apt install -y "$deb_file"
 
@@ -27,6 +27,7 @@ install_brave() {
   fi
 
   # Download the Brave keyring
+  # shellcheck disable=SC2086
   gum spin --spinner points --title 'Adding Brave repository' -- \
     $SUDO curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
 
@@ -34,9 +35,11 @@ install_brave() {
   $SUDO curl -fsSLo /etc/apt/sources.list.d/brave-browser-release.sources https://brave-browser-apt-release.s3.brave.com/brave-browser.sources
 
   # Update apt to recognize the new repo
+  # shellcheck disable=SC2086
   gum spin --spinner points --title 'Downloading Brave' -- $SUDO apt update
 
   # Install Brave
+  # shellcheck disable=SC2086
   gum spin --spinner meter --title 'Installing Brave' -- $SUDO apt install -y brave-browser
 
   printf "Brave installed successfully.\n"
@@ -130,7 +133,9 @@ function Browsers {
       "Chromium")
         if command -v chromium &>/dev/null; then
           printf "Chromium is already installed.\n"
+
         else
+          # shellcheck disable=SC2086
           gum spin --spinner points --title 'Installing Chromium' -- \
             $SUDO apt install -y chromium
         fi
