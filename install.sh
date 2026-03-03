@@ -588,16 +588,17 @@ function Communications {
 
   while IFS= read -r talk <&3; do
     case "$talk" in
-      "Discord") 
-      deb_install "Discord" "discord" "https://discord.com/api/download?platform=linux&format=deb"
-      ;;
+      "Discord")
+        deb_install "Discord" "discord" "https://discord.com/api/download?platform=linux&format=deb"
+        ;;
+      "Slack")
+        apt_install "Slack" "slack"
     esac
   done <<<3"$selected"
 
 }
 
 Communications
-
 
 if gum confirm --affirmative "Reboot Now ⚡" --negative "Later" --default=false --prompt.foreground 212 --selected.foreground 118 "Restart to apply changes"; then
   $SUDO reboot
