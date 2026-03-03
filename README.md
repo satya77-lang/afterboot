@@ -15,7 +15,7 @@ A single script to transform a fresh Ubuntu/Debian install into a fully configur
 **One command. That's all it takes.**
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/satya77-lang/afterboot/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/satya77-lang/afterboot/main/setup.sh)
 ```
 
 </div>
@@ -29,8 +29,9 @@ bash <(curl -fsSL https://raw.githubusercontent.com/satya77-lang/afterboot/main/
 | 🔄 **System Update** | Full system update & upgrade on first run |
 | 🐚 **ZSH Shell Setup** | ZSH + Oh My Zsh + autosuggestions + syntax highlighting |
 | 🚀 **Starship Prompt** | Beautiful, fast, cross-shell prompt — auto-configured |
-| 🌐 **Browsers** | Chrome, Brave, Chromium, Zen Browser (Flatpak/AppImage/Tarball) |
+| 🌐 **Browsers** | Chrome, Brave, Firefox, Chromium, Zen Browser (Flatpak/AppImage/Tarball) |
 | 🎬 **Multimedia** | VLC, MPV, GNOME Videos, Blender, GIMP, OBS, Audacity |
+| 💬 **Communications** | Discord, Telegram, Signal, Slack, Thunderbird, Zoom |
 | 🎨 **Interactive UI** | Spinners, confirmations & styled outputs via [Gum](https://github.com/charmbracelet/gum) |
 
 ---
@@ -40,7 +41,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/satya77-lang/afterboot/main/
 ### One-Liner Install (Recommended)
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/satya77-lang/afterboot/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/satya77-lang/afterboot/main/setup.sh)
 ```
 
 ### Manual Install
@@ -54,6 +55,25 @@ chmod +x install.sh
 
 ---
 
+## 🗂️ Project Structure
+
+```
+afterboot/
+├── setup.sh             ← Bootstrap script (one-liner entry point)
+├── install.sh           ← Main installer (orchestrates everything)
+├── lib/
+│   ├── checks.sh        ← OS detection, root check, dependencies
+│   ├── ui.sh            ← Gum dependency setup
+│   └── utils.sh         ← Helper functions (apt_install, flatpak_install, deb_install)
+└── modules/
+    ├── zsh_setup.sh     ← ZSH + Oh My Zsh + Starship
+    ├── browsers.sh      ← Browser installation
+    ├── multimedia.sh    ← Multimedia tools installation
+    └── communications.sh← Communication apps installation
+```
+
+---
+
 ## 🛠️ What Happens When You Run It?
 
 The script walks you through each step interactively — you choose what to install:
@@ -63,6 +83,8 @@ The script walks you through each step interactively — you choose what to inst
 2. 🐚 ZSH Setup (with Oh My Zsh, plugins & Starship prompt)
 3. 🌐 Browser Selection (pick one or more)
 4. 🎬 Multimedia Tools (pick one or more)
+5. 💬 Communication Apps (pick one or more)
+6. 🔁 Optional Reboot
 ```
 
 > **No surprises** — every major installation step asks for your confirmation first.
@@ -75,8 +97,22 @@ The script walks you through each step interactively — you choose what to inst
 |:---|:---|
 | Google Chrome | `.deb` package |
 | Brave | Official APT repository |
+| Firefox | Mozilla APT repository |
 | Chromium | System package manager |
 | Zen Browser | Flatpak / AppImage / Official Script |
+
+---
+
+## 💬 Communication Apps
+
+| App | Install Method |
+|:---|:---|
+| Discord | `.deb` package |
+| Telegram | Flatpak |
+| Signal | Flatpak |
+| Slack | Flatpak |
+| Thunderbird | System package manager |
+| Zoom | `.deb` package |
 
 ---
 
