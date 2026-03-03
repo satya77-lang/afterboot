@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-
 install_chrome() {
   if command -v google-chrome &>/dev/null; then
     printf "Chrome is already installed.\n"
@@ -145,4 +144,3 @@ function Browsers {
 }
 
 Browsers # Calls the Browsers installation function
-

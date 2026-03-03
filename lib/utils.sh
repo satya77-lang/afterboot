@@ -27,14 +27,14 @@ function flatpak_install {
 
   # Setup flatpak + flathub only once
   if [[ "${FLATHUB_READY:-}" != "true" ]]; then
-# shellcheck disable=SC2086
+    # shellcheck disable=SC2086
     if ! command -v flatpak &>/dev/null; then
       gum spin --spinner meter --title 'Installing Flatpak' -- $SUDO apt install -y flatpak
     fi
     $SUDO flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
     FLATHUB_READY=true
   fi
-# shellcheck disable=SC2086
+  # shellcheck disable=SC2086
   gum spin --spinner meter --title "Installing $name via Flatpak" -- \
     $SUDO flatpak install -y flathub $package
   gum style --foreground 10 "$name installed via Flatpak"
