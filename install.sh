@@ -5,26 +5,30 @@ trap 'printf "\n❌ Script failed at line %d (exit code %d)\n" "$LINENO" "$?" >&
 
 printf "Hello, %s\n" "$USER"
 
+# Get the directory where THIS script lives
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Load helper libraries (order matters!)
+# 1. checks.sh first — sets $SUDO (needed by ui.sh and utils.sh)
+# 2. ui.sh second — installs gum (needs $SUDO)
+# 3. utils.sh third — helper functions (needs gum + $SUDO)
+
+source "$SCRIPT_DIR/lib/checks.sh"
+
+check_os
+check_root
+
+source "$SCRIPT_DIR/lib/ui.sh"
+source "$SCRIPT_DIR/lib/utils.sh"
+
+install_dependencies
+
 function updateSystem {
   gum style --foreground 212 --bold "⬆ Updating the system..."
   $SUDO apt update -y
   $SUDO apt upgrade -y
-
 }
 
-
-# Get the directory where THIS script lives
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-# Load helper libraries
-
-source "$SCRIPT_DIR/lib/ui.sh"
-source "$SCRIPT_DIR/lib/checks.sh"
-source "$SCRIPT_DIR/lib/utils.sh"
-
-check_os
-check_root
-install_dependencies
 updateSystem
 
 # Run modules

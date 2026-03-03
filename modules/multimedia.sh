@@ -138,10 +138,10 @@ install_audacity() {
     "AppImage"*)
       local appImageURL=https://github.com/audacity/audacity/releases/download/Audacity-3.7.7/audacity-linux-3.7.7-x64-22.04.AppImage
 
-      if [[ -z "$appImageURL" ]]; then
-        gum style --foreground 196 --bold "❌ Could not find the AppImage URL . Try another method"
-        return
-      fi
+      # if [[ -z "$appImageURL" ]]; then
+      #   gum style --foreground 196 --bold "❌ Could not find the AppImage URL . Try another method"
+      #   return
+      # fi
 
       local appImage_dir="$HOME/Applications"
       mkdir -p "$appImage_dir"

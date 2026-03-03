@@ -12,8 +12,20 @@ function Communications {
       "Discord")
         deb_install "Discord" "discord" "https://discord.com/api/download?platform=linux&format=deb"
         ;;
+      "Telegram")
+        flatpak_install "Telegram" "org.telegram.desktop"
+        ;;
+      "Signal")
+        flatpak_install "Signal" "org.signal.Signal"
+        ;;
       "Slack")
-        apt_install "Slack" "slack"
+        flatpak_install "Slack" "com.slack.Slack"
+        ;;
+      "Thunderbird")
+        apt_install "Thunderbird" "thunderbird"
+        ;;
+      "Zoom")
+        deb_install "Zoom" "zoom" "https://zoom.us/client/latest/zoom_amd64.deb"
         ;;
     esac
   done 3<<<"$selected"
