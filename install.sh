@@ -197,6 +197,30 @@ install_chrome() {
   printf "Chrome installed successfully.\n"
 }
 
+function deb_install {
+  local name="$1"
+  local cmd="$2"
+  local link="$3"
+
+  if command -v "$cmd" &>/dev/null; then
+    printf "%s is already installed.\n" "$cmd"
+    return
+  fi
+
+  local deb_file="/tmp/$cmd.deb"
+
+  gum spin --spinner points --title 'Downloading Chrome' -- \
+    wget -qO "$deb_file" "$link"
+
+  gum spin --spinner meter --title 'Installing Chrome' -- \
+    $SUDO apt install -y "$deb_file"
+
+  # Clean up
+  rm -f "$deb_file"
+
+  printf "%s installed successfully.\n" "$name"
+}
+
 install_brave() {
   if command -v brave-browser &>/dev/null; then
     printf "Brave is already installed.\n"
@@ -332,7 +356,7 @@ install_blender() {
   local method
   method=$(
     gum choose --header "How would you like to install Blender?" \
-      "System Package Manager(Recommended)" \
+      "System Package Manager(Recommended/Maybe not latest)" \
       "Snap (For Ubuntu Distro)" \
       "Flatpak"
   )
@@ -511,6 +535,7 @@ EOF
 function MultimediaTools {
   local selected
   selected=$(gum choose --header 'Select the MultimediaTools for installation' --no-limit 'VLC' 'Gnome Video Player' 'MPV Player' 'Blender' 'GIMP' 'OBS' 'Audacity')
+  gum style --border double --border-foreground 212 --padding "2 4" "You selected:" "$selected"
 
   while IFS= read -r media <&3; do
     case "$media" in
@@ -543,9 +568,33 @@ function MultimediaTools {
         ;;
     esac
   done 3<<<"$selected"
+  # The <<< operator is called a here string
+  #  It feeds a string directly into a command's stdin (standard input).
+  #   # Instead of:
+  # echo "hello" | grep "h"
+
+  # # You can write:
+  # grep "h" <<< "hello"
 }
 
 MultimediaTools
+
+## Communications
+
+function Communications {
+  local selected
+  selected=$(gum choose --header 'Select the Communications for installation' --no-limit 'Discord Telegram Signal Slack Thunderbird Zoom')
+  gum style --border double --border-foreground 212 --padding "2 4" "You selected:" "$selected"
+
+  while IFS= read -r talk <&3; do
+    case "$talk" in
+      "Discord") 
+      deb_install "Discord" "discord" "https://discord.com/api/download?platform=linux&format=deb"
+      ;;
+    esac
+  done <<<3"$selected"
+
+}
 
 if gum confirm --affirmative "Reboot Now ⚡" --negative "Later" --default=false --prompt.foreground 212 --selected.foreground 118 "Restart to apply changes"; then
   $SUDO reboot
