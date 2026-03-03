@@ -209,10 +209,10 @@ function deb_install {
 
   local deb_file="/tmp/$cmd.deb"
 
-  gum spin --spinner points --title 'Downloading Chrome' -- \
+  gum spin --spinner points --title "Downloading $name" -- \
     wget -qO "$deb_file" "$link"
 
-  gum spin --spinner meter --title 'Installing Chrome' -- \
+  gum spin --spinner meter --title :"Installing $name" -- \
     $SUDO apt install -y "$deb_file"
 
   # Clean up
