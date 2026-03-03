@@ -594,7 +594,7 @@ function Communications {
       "Slack")
         apt_install "Slack" "slack"
     esac
-  done <<<3"$selected"
+  done 3<<<"$selected"
 
 }
 
