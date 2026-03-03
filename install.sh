@@ -596,6 +596,9 @@ function Communications {
 
 }
 
+Communications
+
+
 if gum confirm --affirmative "Reboot Now ⚡" --negative "Later" --default=false --prompt.foreground 212 --selected.foreground 118 "Restart to apply changes"; then
   $SUDO reboot
 else
