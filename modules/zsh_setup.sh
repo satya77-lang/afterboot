@@ -18,7 +18,7 @@ function zsh_setup {
   gum style --foreground 118 --bold "✅ Plugins configured in .zshrc"
 
   # Installing the starship
-  gum spin --spinner meter --title "Installing Starship" -- bash -c 'curl -sS https://starship.rs/install.sh | sh -s -- -y'
+  gum spin --spinner meter --title "Installing Starship" -- bash -c "curl -sS https://starship.rs/install.sh | $SUDO sh -s -- -y"
 
   # Add starship init to .zshrc
   # shellcheck disable=SC2016
